@@ -66,44 +66,48 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         const qrContainer = document.getElementById("qrcode");
 
-        function getQRData() {
-            const studentData = JSON.parse(localStorage.getItem("currentStudent")) || { roll: "Unknown", name: "Unknown", batch: "Unknown" };
-            return JSON.stringify({
-                rollNo: studentData.roll,
-                name: studentData.name,
-                batch: studentData.batch,
-                timestamp: Date.now(),
-                secretCode: Math.random().toString(36).substring(2, 10)
-            });
+        async function fetchQRCode() {
+            const studentData = JSON.parse(localStorage.getItem("currentStudent"));
+            if (!studentData || !studentData.username) {
+                return;
+            }
+            
+            try {
+                // Provide visual feedback during refresh
+                qrContainer.style.opacity = '0.2';
+                
+                const response = await fetch(`/api/qr/generate?username=${studentData.username}`);
+                const data = await response.json();
+                
+                if (response.ok && data.qrImage) {
+                    qrContainer.innerHTML = `<img src="${data.qrImage}" alt="QR Code" style="width: 200px; height: 200px; display: block; margin: 0 auto;"/>`;
+                    qrContainer.style.opacity = '1';
+                } else {
+                    console.error("Failed to fetch QR code:", data.error);
+                    qrContainer.innerHTML = `<p style="color:red; text-align:center; padding-top: 80px;">Error loading QR</p>`;
+                    qrContainer.style.opacity = '1';
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                qrContainer.innerHTML = `<p style="color:red; text-align:center; padding-top: 80px;">Network Error</p>`;
+                qrContainer.style.opacity = '1';
+            }
         }
 
-        let qrcode = new QRCode(qrContainer, {
-            text: getQRData(),
-            width: 200,
-            height: 200,
-            colorDark : "#0f172a",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
-        });
-
         function refreshQR() {
-            // Simulate refresh feedback
-            qrContainer.style.opacity = '0.2';
-            setTimeout(() => {
-                qrcode.clear();
-                qrcode.makeCode(getQRData());
-                qrContainer.style.opacity = '1';
-            }, 300);
+            fetchQRCode();
         }
 
         document.addEventListener("DOMContentLoaded", () => {
             const studentData = JSON.parse(localStorage.getItem("currentStudent"));
             if(studentData) {
                 document.querySelector(".qr-instructions strong").innerText = studentData.roll;
+                fetchQRCode();
+            } else {
+                window.location.href = "index.html";
             }
             
             // Set interval to automatically refresh QR every 30 seconds
