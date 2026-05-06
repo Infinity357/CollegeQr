@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus - Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="images/logo.png" alt="Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3593/3593921.png'">
+            <h2>Smart Campus</h2>
+        </div>
+        
+        <ul>
+            <li class="active" onclick="window.location='dashboard.html'">
+                <i class="fa-solid fa-house"></i>
+                <span>Dashboard</span>
+            </li>
+            <li onclick="window.location='profile.html'">
+                <i class="fa-regular fa-id-card"></i>
+                <span>Profile</span>
+            </li>
+            <li onclick="window.location='attendance.html'">
+                <i class="fa-solid fa-qrcode"></i>
+                <span>QR Attendance</span>
+            </li>
+            <li>
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Entry Logs</span>
+            </li>
+            <li class="logout" onclick="logout()">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1 id="welcomeMessage">Welcome to Jaypee University Of Information Technology</h1>
+            <p>Here is an overview of your academic and attendance status.</p>
+        </div>
+
+        <div class="cards">
+            <div class="card" onclick="window.location='attendance.html'">
+                <div class="card-icon"><i class="fa-solid fa-clipboard-user"></i></div>
+                <h3>Attendance</h3>
+                <p>Check your daily attendance records and course statistics easily.</p>
+            </div>
+
+            <div class="card" onclick="window.location='attendance.html'">
+                <div class="card-icon"><i class="fa-solid fa-qrcode"></i></div>
+                <h3>QR Access</h3>
+                <p>Generate your secure QR code for entering the campus and library.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-icon"><i class="fa-solid fa-server"></i></div>
+                <h3>Entry Logs</h3>
+                <p>View your recent gate entries, exits, and library check-ins.</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                <h3>Announcements</h3>
+                <p>Stay updated with the latest campus news, alerts, and events.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const studentData = JSON.parse(localStorage.getItem("currentStudent"));
+            if(studentData) {
+                document.getElementById("welcomeMessage").innerText = `Welcome, ${studentData.name}`;
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function logout(){
+            localStorage.removeItem("currentStudent");
+            window.location.href="index.html";
+        }
+    </script>
+</body>
+</html>

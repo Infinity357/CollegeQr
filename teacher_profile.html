@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus - Teacher Profile</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="images/logo.png" alt="Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3593/3593921.png'">
+            <h2>Smart Campus</h2>
+        </div>
+        
+        <ul>
+            <li onclick="window.location='teacher_dashboard.html'">
+                <i class="fa-solid fa-house"></i>
+                <span>Dashboard</span>
+            </li>
+            <li class="active" onclick="window.location='teacher_profile.html'">
+                <i class="fa-regular fa-id-card"></i>
+                <span>Profile</span>
+            </li>
+            <li onclick="window.location='teacher_attendance.html'">
+                <i class="fa-solid fa-clipboard-user"></i>
+                <span>Mark Attendance</span>
+            </li>
+            <li class="logout" onclick="window.location='index.html'">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1>Teacher Profile</h1>
+            <p>Manage your professional information and account details.</p>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+                <div class="profile-title">
+                    <h3 id="teacherName">Gaurav Negi</h3>
+                    <p>Computer Science Engineering</p>
+                </div>
+            </div>
+            
+            <div class="profile-info-grid">
+                <div class="info-item">
+                    <span class="info-label">Employee ID</span>
+                    <span class="info-value" id="teacherId">GauravNegi123</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Email Address</span>
+                    <span class="info-value" id="teacherEmail">gaurav321@gmail.com</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Department</span>
+                    <span class="info-value">Computer Science</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Contact Number</span>
+                    <span class="info-value" id="teacherContact">9785493932</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const teacher = JSON.parse(localStorage.getItem("currentTeacher"));
+        if (teacher) {
+            document.getElementById("teacherName").innerText = teacher.name;
+            document.getElementById("teacherId").innerText = teacher.id;
+            document.getElementById("teacherEmail").innerText = teacher.email;
+            document.getElementById("teacherContact").innerText = teacher.contact;
+        }
+    </script>
+</body>
+</html>

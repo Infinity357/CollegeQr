@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus - QR Attendance</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="images/logo.png" alt="Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3593/3593921.png'">
+            <h2>Smart Campus</h2>
+        </div>
+        
+        <ul>
+            <li onclick="window.location='dashboard.html'">
+                <i class="fa-solid fa-house"></i>
+                <span>Dashboard</span>
+            </li>
+            <li onclick="window.location='profile.html'">
+                <i class="fa-regular fa-id-card"></i>
+                <span>Profile</span>
+            </li>
+            <li class="active" onclick="window.location='attendance.html'">
+                <i class="fa-solid fa-qrcode"></i>
+                <span>QR Attendance</span>
+            </li>
+            <li>
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Entry Logs</span>
+            </li>
+            <li class="logout" onclick="window.location='index.html'">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1>QR Access & Attendance</h1>
+            <p>Scan this secure QR code at campus gates and lecture halls.</p>
+        </div>
+
+        <div class="qr-container">
+            <div class="qr-box">
+                <div id="qrcode"></div>
+            </div>
+            
+            <p class="qr-instructions">
+                This QR code securely identifies you as <strong>StudentID123</strong>. <br>
+                It is dynamically generated and updates automatically.
+            </p>
+            
+            <button class="refresh-btn" onclick="refreshQR()">
+                <i class="fa-solid fa-rotate-right"></i> Refresh QR Code
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        const qrContainer = document.getElementById("qrcode");
+
+        function getQRData() {
+            const studentData = JSON.parse(localStorage.getItem("currentStudent")) || { roll: "Unknown", name: "Unknown", batch: "Unknown" };
+            return JSON.stringify({
+                rollNo: studentData.roll,
+                name: studentData.name,
+                batch: studentData.batch,
+                timestamp: Date.now(),
+                secretCode: Math.random().toString(36).substring(2, 10)
+            });
+        }
+
+        let qrcode = new QRCode(qrContainer, {
+            text: getQRData(),
+            width: 200,
+            height: 200,
+            colorDark : "#0f172a",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+
+        function refreshQR() {
+            // Simulate refresh feedback
+            qrContainer.style.opacity = '0.2';
+            setTimeout(() => {
+                qrcode.clear();
+                qrcode.makeCode(getQRData());
+                qrContainer.style.opacity = '1';
+            }, 300);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const studentData = JSON.parse(localStorage.getItem("currentStudent"));
+            if(studentData) {
+                document.querySelector(".qr-instructions strong").innerText = studentData.roll;
+            }
+            
+            // Set interval to automatically refresh QR every 30 seconds
+            setInterval(refreshQR, 30000);
+        });
+    </script>
+</body>
+</html>

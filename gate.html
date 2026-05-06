@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus - Mark Attendance</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <!-- HTML5 QR Code Scanner -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        .attendance-form {
+            background: var(--glass-panel);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .form-group input[type="date"]::-webkit-calendar-picker-indicator,
+        .form-group input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .load-btn, .finish-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            height: 44px;
+        }
+
+        .load-btn:hover, .finish-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+        }
+
+        .scanner-section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            background: var(--glass-panel);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+
+        #reader {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .students-list {
+            display: none;
+            /* Hidden by default */
+            background: var(--glass-panel);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .student-header {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr 1fr;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--glass-border);
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        .student-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr 1fr;
+            padding: 20px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .student-row:last-child {
+            border-bottom: none;
+        }
+
+        .student-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .student-col {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .status-toggle {
+            display: flex;
+            gap: 10px;
+        }
+
+        .status-btn {
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .status-btn.present {
+            background: rgba(34, 197, 94, 0.1);
+            color: #4ade80;
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .status-btn.present.active {
+            background: #22c55e;
+            color: white;
+        }
+
+        .status-btn.absent {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .status-btn.absent.active {
+            background: #ef4444;
+            color: white;
+        }
+
+        .actions-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding: 0 30px 30px;
+        }
+
+        .export-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-btn:hover {
+            background: #0284c7;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(14, 165, 233, 0.4);
+        }
+
+        .save-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .save-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
+        }
+
+        .success-msg {
+            display: none;
+            color: #4ade80;
+            font-weight: 500;
+            margin-top: 15px;
+            text-align: center;
+            background: rgba(34, 197, 94, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            margin-left: 30px;
+            margin-right: 30px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="images/logo.png" alt="Logo"
+                onerror="this.src='https://cdn-icons-png.flaticon.com/512/3593/3593921.png'">
+            <h2>Smart Campus</h2>
+        </div>
+
+        <ul>
+            <li onclick="window.location='teacher_dashboard.html'">
+                <i class="fa-solid fa-house"></i>
+                <span>Dashboard</span>
+            </li>
+            <li onclick="window.location='teacher_profile.html'">
+                <i class="fa-regular fa-id-card"></i>
+                <span>Profile</span>
+            </li>
+            <li onclick="window.location='teacher_attendance.html'">
+                <i class="fa-solid fa-clipboard-user"></i>
+                <span>Mark Attendance</span>
+            </li>
+            <li class="active" onclick="window.location='gate.html'">
+                <i class="fa-solid fa-building-columns"></i>
+                <span>Gate Scanner</span>
+            </li>
+            <li class="logout" onclick="logout()">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1>Gate & Library Scanner</h1>
+            <p>Select location and log type to start session and scan QRs.</p>
+        </div>
+
+        <div class="attendance-form" id="attendanceForm">
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="att-date">
+            </div>
+            <div class="form-group">
+                <label>Location</label>
+                <select id="gate-location">
+                    <option value="Main Gate">Main Gate</option>
+                    <option value="Library">Library</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Log Type</label>
+                <select id="gate-type">
+                    <option value="Entry">Entry</option>
+                    <option value="Exit">Exit</option>
+                </select>
+            </div>
+            <button class="load-btn" onclick="openScanner()">Open Scanner</button>
+        </div>
+
+        <div class="scanner-section" id="scannerSection">
+            <h2>Scan Student QRs</h2>
+            <p style="color: var(--text-muted); margin-bottom: 10px;">Please show student QR code to the camera.</p>
+            <div id="reader"></div>
+            <button class="finish-btn" onclick="finishScanning()">Finish Scanning & View List</button>
+        </div>
+
+        <div class="students-list" id="studentsList">
+            <div class="student-header">
+                <div>ID</div>
+                <div>Name</div>
+                <div>Batch</div>
+                <div>Status</div>
+            </div>
+
+            <!-- Student 1 -->
+            <div class="student-row">
+                <div class="student-col">231030083</div>
+                <div class="student-col">AVIRAL GUPTA</div>
+                <div class="student-col">A13</div>
+                <div class="student-col status-toggle">
+                    <button class="status-btn present" onclick="toggleStatus(this, 'present')">P</button>
+                    <button class="status-btn absent active" onclick="toggleStatus(this, 'absent')">A</button>
+                </div>
+            </div>
+
+            <!-- Student 2 -->
+            <div class="student-row">
+                <div class="student-col">231030146</div>
+                <div class="student-col">YUVIKA CHAUDHARY</div>
+                <div class="student-col">A15</div>
+                <div class="student-col status-toggle">
+                    <button class="status-btn present" onclick="toggleStatus(this, 'present')">P</button>
+                    <button class="status-btn absent active" onclick="toggleStatus(this, 'absent')">A</button>
+                </div>
+            </div>
+
+            <!-- Student 3 -->
+            <div class="student-row">
+                <div class="student-col">231030197</div>
+                <div class="student-col">MAYANK</div>
+                <div class="student-col">A17</div>
+                <div class="student-col status-toggle">
+                    <button class="status-btn present" onclick="toggleStatus(this, 'present')">P</button>
+                    <button class="status-btn absent active" onclick="toggleStatus(this, 'absent')">A</button>
+                </div>
+            </div>
+
+            <!-- Student 4 -->
+            <div class="student-row">
+                <div class="student-col">231030202</div>
+                <div class="student-col">SOURAV BHATT</div>
+                <div class="student-col">A17</div>
+                <div class="student-col status-toggle">
+                    <button class="status-btn present" onclick="toggleStatus(this, 'present')">P</button>
+                    <button class="status-btn absent active" onclick="toggleStatus(this, 'absent')">A</button>
+                </div>
+            </div>
+
+            <div class="actions-row">
+                <button class="save-btn" onclick="saveGateLogs()"><i class="fa-solid fa-check"></i> Save Logs</button>
+            </div>
+            <div class="success-msg" id="successMsg">Logs saved successfully!</div>
+        </div>
+
+    </div>
+
+    <script>
+        function logout() {
+            window.location.href = "index.html";
+        }
+
+        // Set default date to today
+        document.getElementById('att-date').valueAsDate = new Date();
+
+        let html5QrcodeScanner = null;
+        let scannedIds = new Set(); // To prevent multiple alerts for the same scan
+
+        function openScanner() {
+            const date = document.getElementById('att-date').value;
+            const location = document.getElementById('gate-location').value;
+            const type = document.getElementById('gate-type').value;
+
+            if (!date || !location || !type) {
+                alert("Please fill in Date, Location, and Log Type.");
+                return;
+            }
+
+            // Hide form, show scanner
+            document.getElementById('attendanceForm').style.display = 'none';
+            document.getElementById('scannerSection').style.display = 'flex';
+
+            // Initialize scanner
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader",
+                { fps: 10, qrbox: {width: 250, height: 250} },
+                /* verbose= */ false);
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            try {
+                const qrData = JSON.parse(decodedText);
+                const now = Date.now();
+                
+                // Check if QR is valid (generated within the last 1 minute / 60000ms)
+                if (now - qrData.timestamp <= 60000) {
+                    const id = qrData.rollNo;
+                    if(!scannedIds.has(id)) {
+                        scannedIds.add(id);
+                        // Mark present in DOM immediately
+                        const rows = document.querySelectorAll('.student-row');
+                        let studentFound = false;
+                        rows.forEach(row => {
+                            const colId = row.querySelector('.student-col').innerText.trim();
+                            if (colId === id) {
+                                studentFound = true;
+                                const presentBtn = row.querySelector('.present');
+                                toggleStatus(presentBtn, 'present');
+                                alert(`Scanned successfully: ${qrData.name} (${id})`);
+                            }
+                        });
+                        
+                        if (!studentFound) {
+                            alert(`Student ${id} is not in this class list!`);
+                        }
+                    }
+                } else {
+                    alert("Invalid QR Code: This QR code has expired. Please ask the student to refresh their QR code.");
+                }
+            } catch (e) {
+                // Fallback for old static QR codes for testing if necessary
+                const studentIds = ["231030083", "231030146", "231030197", "231030202"];
+                for (const id of studentIds) {
+                    if (decodedText.includes(id)) {
+                        if(!scannedIds.has(id)) {
+                            scannedIds.add(id);
+                            const rows = document.querySelectorAll('.student-row');
+                            rows.forEach(row => {
+                                const colId = row.querySelector('.student-col').innerText.trim();
+                                if (colId === id) {
+                                    const presentBtn = row.querySelector('.present');
+                                    toggleStatus(presentBtn, 'present');
+                                    alert(`Scanned successfully: ${id} (Legacy QR)`);
+                                }
+                            });
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        function onScanFailure(error) {
+            // handle scan failure, usually better to ignore and keep scanning
+        }
+
+        function finishScanning() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().catch(error => {
+                    console.error("Failed to clear html5QrcodeScanner. ", error);
+                });
+            }
+            document.getElementById('scannerSection').style.display = 'none';
+            document.getElementById('studentsList').style.display = 'block';
+        }
+
+        function toggleStatus(btn, status) {
+            const row = btn.closest('.status-toggle');
+            const presentBtn = row.querySelector('.present');
+            const absentBtn = row.querySelector('.absent');
+
+            if (status === 'present') {
+                presentBtn.classList.add('active');
+                absentBtn.classList.remove('active');
+            } else {
+                absentBtn.classList.add('active');
+                presentBtn.classList.remove('active');
+            }
+        }
+
+        async function saveGateLogs() {
+            const btn = document.querySelector('.save-btn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+            const rows = document.querySelectorAll('.student-row');
+            const date = document.getElementById('att-date').value;
+            const location = document.getElementById('gate-location').value;
+            const logType = document.getElementById('gate-type').value;
+
+            const now = new Date();
+            const logTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+            try {
+                let successCount = 0;
+                
+                for (const row of rows) {
+                    const isPresent = row.querySelector('.present').classList.contains('active');
+                    if (!isPresent) continue; // Only log students who were marked as present/scanned
+                    
+                    const cols = row.querySelectorAll('.student-col');
+                    const id = cols[0].innerText.trim();
+                    const name = cols[1].innerText.trim();
+                    const batch = cols[2].innerText.trim();
+                    
+                    await fetch('/api/gate/log', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            location,
+                            date,
+                            logTime,
+                            logType,
+                            rollNo: id,
+                            name,
+                            batch
+                        })
+                    });
+                    successCount++;
+                }
+
+                if (successCount > 0) {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Save Logs';
+                    document.getElementById('successMsg').style.display = 'block';
+
+                    setTimeout(() => {
+                        document.getElementById('successMsg').style.display = 'none';
+                    }, 3000);
+                } else {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Save Logs';
+                    alert("No valid scans to save.");
+                }
+            } catch (error) {
+                console.error("Error saving gate log:", error);
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Save Logs';
+                alert("Error saving gate log.");
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus Portal</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Animated Background Shapes -->
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-3"></div>
+
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo-wrapper">
+                <img src="images/logo.png" alt="Logo" class="logo"
+                    onerror="this.src='https://cdn-icons-png.flaticon.com/512/3593/3593921.png'">
+            </div>
+            <h2>SMART CAMPUS PORTAL</h2>
+            <p>Welcome back! Please login to your account.</p>
+        </div>
+
+        <div class="input-group">
+            <i class="fa-regular fa-user icon"></i>
+            <input type="text" placeholder="ID or Email" id="username" autocomplete="off">
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-lock icon"></i>
+            <input type="password" placeholder="Password" id="password">
+            <i class="fa-regular fa-eye-slash toggle-password" onclick="togglePassword()"></i>
+        </div>
+
+        <div class="options-group">
+            <label class="remember-me">
+                <input type="checkbox">
+                <span class="checkmark"></span>
+                Remember me
+            </label>
+            <a href="#" class="forgot">Forgot password?</a>
+        </div>
+
+        <button class="login-btn" onclick="login()">
+            <span>LOGIN</span>
+            <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </div>
+
+    <!-- Keep the original script linking -->
+    <script src="js/login.js"></script>
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const icon = document.querySelector('.toggle-password');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        }
+    </script>
+</body>
+
+</html>

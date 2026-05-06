@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus - Profile</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="images/logo.png" alt="Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3593/3593921.png'">
+            <h2>Smart Campus</h2>
+        </div>
+        
+        <ul>
+            <li onclick="window.location='dashboard.html'">
+                <i class="fa-solid fa-house"></i>
+                <span>Dashboard</span>
+            </li>
+            <li class="active" onclick="window.location='profile.html'">
+                <i class="fa-regular fa-id-card"></i>
+                <span>Profile</span>
+            </li>
+            <li onclick="window.location='attendance.html'">
+                <i class="fa-solid fa-qrcode"></i>
+                <span>QR Attendance</span>
+            </li>
+            <li>
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Entry Logs</span>
+            </li>
+            <li class="logout" onclick="logout()">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1>Student Profile</h1>
+            <p>Manage your academic information and personal details.</p>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+                <div class="profile-title">
+                    <h3 id="studentName">Student Name</h3>
+                    <p>Computer Science Engineering</p>
+                </div>
+            </div>
+            
+            <div class="profile-info-grid">
+                <div class="info-item">
+                    <span class="info-label">Roll Number</span>
+                    <span class="info-value" id="studentRoll">12345</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Email Address</span>
+                    <span class="info-value" id="studentEmail">student@email.com</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Batch</span>
+                    <span class="info-value" id="studentBatch">A15</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Contact Number</span>
+                    <span class="info-value" id="studentContact">+1 234 567 8900</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const studentData = JSON.parse(localStorage.getItem("currentStudent"));
+            if(studentData) {
+                document.getElementById("studentName").innerText = studentData.name;
+                document.getElementById("studentRoll").innerText = studentData.roll;
+                document.getElementById("studentEmail").innerText = studentData.email;
+                document.getElementById("studentBatch").innerText = studentData.batch;
+                document.getElementById("studentContact").innerText = studentData.contact;
+            } else {
+                // Redirect to login if no session
+                window.location.href = "index.html";
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem("currentStudent");
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>

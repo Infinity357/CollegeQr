@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus - Teacher Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="images/logo.png" alt="Logo"
+                onerror="this.src='https://cdn-icons-png.flaticon.com/512/3593/3593921.png'">
+            <h2>Smart Campus</h2>
+        </div>
+
+        <ul>
+            <li class="active" onclick="window.location='teacher_dashboard.html'">
+                <i class="fa-solid fa-house"></i>
+                <span>Dashboard</span>
+            </li>
+            <li onclick="window.location='teacher_profile.html'">
+                <i class="fa-regular fa-id-card"></i>
+                <span>Profile</span>
+            </li>
+            <li onclick="window.location='teacher_attendance.html'">
+                <i class="fa-solid fa-clipboard-user"></i>
+                <span>Mark Attendance</span>
+            </li>
+            <li class="logout" onclick="logout()">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1>Welcome to Jaypee University Of Information Technology</h1>
+            <p>Here is an overview of your classes and attendance tasks.</p>
+        </div>
+
+        <div class="cards">
+            <div class="card" onclick="window.location='teacher_attendance.html'">
+                <div class="card-icon"><i class="fa-solid fa-clipboard-user"></i></div>
+                <h3>Mark Attendance</h3>
+                <p>Add and modify attendance records for your students.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                <h3>Announcements</h3>
+                <p>Post updates, news, and alerts for your classes.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function logout() {
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+
+</html>
