@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus - Entry Logs</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <style>
+        .logs-container {
+            background: var(--glass-panel);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 30px;
+        }
+
+        .log-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--glass-border);
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        .log-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            padding: 20px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .log-row:last-child {
+            border-bottom: none;
+        }
+
+        .log-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .log-col {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .type-entry {
+            background: rgba(34, 197, 94, 0.1);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .type-exit {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .loading, .no-logs {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="images/logo.png" alt="Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3593/3593921.png'">
+            <h2>Smart Campus</h2>
+        </div>
+        
+        <ul>
+            <li onclick="window.location='dashboard.html'">
+                <i class="fa-solid fa-house"></i>
+                <span>Dashboard</span>
+            </li>
+            <li onclick="window.location='profile.html'">
+                <i class="fa-regular fa-id-card"></i>
+                <span>Profile</span>
+            </li>
+            <li onclick="window.location='attendance.html'">
+                <i class="fa-solid fa-qrcode"></i>
+                <span>QR Attendance</span>
+            </li>
+            <li class="active" onclick="window.location='entry_logs.html'">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Entry Logs</span>
+            </li>
+            <li class="logout" onclick="logout()">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1>My Entry & Exit Logs</h1>
+            <p>View your recent gate and library access history.</p>
+        </div>
+
+        <div class="logs-container" id="logsContainer">
+            <div class="log-header">
+                <div>Date</div>
+                <div>Time</div>
+                <div>Location</div>
+                <div>Type</div>
+            </div>
+            
+            <div id="logsBody">
+                <div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> Fetching logs...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const studentData = JSON.parse(localStorage.getItem("currentStudent"));
+            if(!studentData) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/gate/logs?rollNo=${studentData.roll}`);
+                const data = await response.json();
+                
+                const logsBody = document.getElementById('logsBody');
+                
+                if (response.ok && data.logs && data.logs.length > 0) {
+                    logsBody.innerHTML = ''; // clear loading
+                    
+                    data.logs.forEach(log => {
+                        const row = document.createElement('div');
+                        row.className = 'log-row';
+                        
+                        const badgeClass = log.logType === 'Entry' ? 'type-entry' : 'type-exit';
+                        
+                        row.innerHTML = `
+                            <div class="log-col">${log.date}</div>
+                            <div class="log-col">${log.logTime}</div>
+                            <div class="log-col">${log.location}</div>
+                            <div class="log-col"><span class="type-badge ${badgeClass}">${log.logType}</span></div>
+                        `;
+                        
+                        logsBody.appendChild(row);
+                    });
+                } else {
+                    logsBody.innerHTML = '<div class="no-logs">No access logs found.</div>';
+                }
+            } catch (err) {
+                console.error("Error fetching logs:", err);
+                document.getElementById('logsBody').innerHTML = '<div class="no-logs" style="color:#ef4444;">Failed to load logs.</div>';
+            }
+        });
+
+        function logout(){
+            localStorage.removeItem("currentStudent");
+            window.location.href="index.html";
+        }
+    </script>
+</body>
+</html>

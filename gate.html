@@ -321,66 +321,7 @@
             <h2>Scan Student QRs</h2>
             <p style="color: var(--text-muted); margin-bottom: 10px;">Please show student QR code to the camera.</p>
             <div id="reader"></div>
-            <button class="finish-btn" onclick="finishScanning()">Finish Scanning & View List</button>
-        </div>
-
-        <div class="students-list" id="studentsList">
-            <div class="student-header">
-                <div>ID</div>
-                <div>Name</div>
-                <div>Batch</div>
-                <div>Status</div>
-            </div>
-
-            <!-- Student 1 -->
-            <div class="student-row">
-                <div class="student-col">231030083</div>
-                <div class="student-col">AVIRAL GUPTA</div>
-                <div class="student-col">A13</div>
-                <div class="student-col status-toggle">
-                    <button class="status-btn present" onclick="toggleStatus(this, 'present')">P</button>
-                    <button class="status-btn absent active" onclick="toggleStatus(this, 'absent')">A</button>
-                </div>
-            </div>
-
-            <!-- Student 2 -->
-            <div class="student-row">
-                <div class="student-col">231030146</div>
-                <div class="student-col">YUVIKA CHAUDHARY</div>
-                <div class="student-col">A15</div>
-                <div class="student-col status-toggle">
-                    <button class="status-btn present" onclick="toggleStatus(this, 'present')">P</button>
-                    <button class="status-btn absent active" onclick="toggleStatus(this, 'absent')">A</button>
-                </div>
-            </div>
-
-            <!-- Student 3 -->
-            <div class="student-row">
-                <div class="student-col">231030197</div>
-                <div class="student-col">MAYANK</div>
-                <div class="student-col">A17</div>
-                <div class="student-col status-toggle">
-                    <button class="status-btn present" onclick="toggleStatus(this, 'present')">P</button>
-                    <button class="status-btn absent active" onclick="toggleStatus(this, 'absent')">A</button>
-                </div>
-            </div>
-
-            <!-- Student 4 -->
-            <div class="student-row">
-                <div class="student-col">231030202</div>
-                <div class="student-col">SOURAV BHATT</div>
-                <div class="student-col">A17</div>
-                <div class="student-col status-toggle">
-                    <button class="status-btn present" onclick="toggleStatus(this, 'present')">P</button>
-                    <button class="status-btn absent active" onclick="toggleStatus(this, 'absent')">A</button>
-                </div>
-            </div>
-
-            <div class="actions-row">
-                <button class="save-btn" onclick="saveGateLogs()"><i class="fa-solid fa-check"></i> Save Logs</button>
-            </div>
-            <div class="success-msg" id="successMsg">Logs saved successfully!</div>
-        </div>
+        <div class="success-msg" id="successMsg"></div>
 
     </div>
 
@@ -423,158 +364,64 @@
             processingScans.add(decodedText);
 
             try {
-                // Optimistic local check for duplicate student
-                try {
-                    const parsed = JSON.parse(decodedText);
-                    if (parsed.rollNo && scannedIds.has(parsed.rollNo)) {
-                        return;
-                    }
-                } catch(e) {}
+                const date = document.getElementById('att-date').value;
+                const location = document.getElementById('gate-location').value;
+                const logType = document.getElementById('gate-type').value;
 
-                const response = await fetch('/api/qr/validate', {
+                // 1. Validate QR Code
+                const validateResponse = await fetch('/api/qr/validate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ qrData: decodedText })
                 });
 
-                const data = await response.json();
+                const validateData = await validateResponse.json();
 
-                if (response.ok) {
-                    const id = data.student.rollNo;
-                    if(!scannedIds.has(id)) {
-                        scannedIds.add(id);
-                        // Mark present in DOM immediately
-                        const rows = document.querySelectorAll('.student-row');
-                        let studentFound = false;
-                        rows.forEach(row => {
-                            const colId = row.querySelector('.student-col').innerText.trim();
-                            if (colId === id) {
-                                studentFound = true;
-                                const presentBtn = row.querySelector('.present');
-                                toggleStatus(presentBtn, 'present');
-                                alert(`Scanned successfully: ${data.student.name} (${id})`);
-                            }
-                        });
-                        
-                        if (!studentFound) {
-                            alert(`Student ${id} is not in this class list!`);
-                        }
-                    }
-                } else {
-                    alert(data.error || "Invalid QR Code.");
-                }
-            } catch (error) {
-                console.error("Error validating QR:", error);
-                // Fallback for old static QR codes for testing if necessary
-                const studentIds = ["231030083", "231030146", "231030197", "231030202"];
-                for (const id of studentIds) {
-                    if (decodedText.includes(id)) {
-                        if(!scannedIds.has(id)) {
-                            scannedIds.add(id);
-                            const rows = document.querySelectorAll('.student-row');
-                            rows.forEach(row => {
-                                const colId = row.querySelector('.student-col').innerText.trim();
-                                if (colId === id) {
-                                    const presentBtn = row.querySelector('.present');
-                                    toggleStatus(presentBtn, 'present');
-                                    alert(`Scanned successfully: ${id} (Legacy QR)`);
-                                }
-                            });
-                        }
-                        break;
-                    }
-                }
-            } finally {
-                setTimeout(() => processingScans.delete(decodedText), 2000);
-            }
-        }
-
-        function onScanFailure(error) {
-            // handle scan failure, usually better to ignore and keep scanning
-        }
-
-        function finishScanning() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear().catch(error => {
-                    console.error("Failed to clear html5QrcodeScanner. ", error);
-                });
-            }
-            document.getElementById('scannerSection').style.display = 'none';
-            document.getElementById('studentsList').style.display = 'block';
-        }
-
-        function toggleStatus(btn, status) {
-            const row = btn.closest('.status-toggle');
-            const presentBtn = row.querySelector('.present');
-            const absentBtn = row.querySelector('.absent');
-
-            if (status === 'present') {
-                presentBtn.classList.add('active');
-                absentBtn.classList.remove('active');
-            } else {
-                absentBtn.classList.add('active');
-                presentBtn.classList.remove('active');
-            }
-        }
-
-        async function saveGateLogs() {
-            const btn = document.querySelector('.save-btn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
-
-            const rows = document.querySelectorAll('.student-row');
-            const date = document.getElementById('att-date').value;
-            const location = document.getElementById('gate-location').value;
-            const logType = document.getElementById('gate-type').value;
-
-            const now = new Date();
-            const logTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-
-            try {
-                let successCount = 0;
-                
-                for (const row of rows) {
-                    const isPresent = row.querySelector('.present').classList.contains('active');
-                    if (!isPresent) continue; // Only log students who were marked as present/scanned
+                if (validateResponse.ok) {
+                    const id = validateData.student.rollNo;
                     
-                    const cols = row.querySelectorAll('.student-col');
-                    const id = cols[0].innerText.trim();
-                    const name = cols[1].innerText.trim();
-                    const batch = cols[2].innerText.trim();
+                    // Allow repeated scans for same person if they are distinct sessions (e.g. they enter and then exit).
+                    // We only block immediate double scans using processingScans.
                     
-                    await fetch('/api/gate/log', {
+                    // 2. Log directly to MongoDB
+                    const now = new Date();
+                    const logTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+                    const logResponse = await fetch('/api/gate/log', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             location,
                             date,
                             logTime,
                             logType,
                             rollNo: id,
-                            name,
-                            batch
+                            name: validateData.student.name,
+                            batch: validateData.student.batch
                         })
                     });
-                    successCount++;
-                }
 
-                if (successCount > 0) {
-                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Save Logs';
-                    document.getElementById('successMsg').style.display = 'block';
-
-                    setTimeout(() => {
-                        document.getElementById('successMsg').style.display = 'none';
-                    }, 3000);
+                    if (logResponse.ok) {
+                        const msgBox = document.getElementById('successMsg');
+                        msgBox.innerText = `Logged successfully: ${validateData.student.name} (${id}) - ${logType} at ${location}`;
+                        msgBox.style.display = 'block';
+                        setTimeout(() => msgBox.style.display = 'none', 3000);
+                    } else {
+                        alert("Failed to save log to server.");
+                    }
                 } else {
-                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Save Logs';
-                    alert("No valid scans to save.");
+                    alert(validateData.error || "Invalid QR Code.");
                 }
             } catch (error) {
-                console.error("Error saving gate log:", error);
-                btn.innerHTML = '<i class="fa-solid fa-check"></i> Save Logs';
-                alert("Error saving gate log.");
+                console.error("Error validating or logging QR:", error);
+                alert("An error occurred during scanning.");
+            } finally {
+                setTimeout(() => processingScans.delete(decodedText), 2000);
             }
+        }
+
+        function onScanFailure(error) {
+            // handle scan failure
         }
     </script>
 </body>
