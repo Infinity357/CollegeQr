@@ -9,7 +9,6 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
 
 // MongoDB Connection
 const MONGODB_URI = 'mongodb+srv://infinity:kanpur123@cluster0.affj45y.mongodb.net/SmartCampus?retryWrites=true&w=majority';
