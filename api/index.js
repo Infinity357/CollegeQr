@@ -151,6 +151,38 @@ app.get('/api/qr/generate', async (req, res) => {
     }
 });
 
+app.post('/api/qr/validate', async (req, res) => {
+    try {
+        const { qrData } = req.body;
+        if (!qrData) {
+            return res.status(400).json({ error: "QR Data is required" });
+        }
+
+        let parsedData;
+        try {
+            parsedData = JSON.parse(qrData);
+        } catch (e) {
+            return res.status(400).json({ error: "Invalid QR format" });
+        }
+
+        const { rollNo, name, batch, timestamp } = parsedData;
+
+        if (!timestamp) {
+            return res.status(400).json({ error: "Invalid QR format (no timestamp)" });
+        }
+
+        const now = Date.now();
+        if (now - timestamp > 60000) {
+            return res.status(400).json({ error: "Invalid QR Code: This QR code has expired. Please ask the student to refresh their QR code." });
+        }
+
+        res.status(200).json({ message: "QR Valid", student: { rollNo, name, batch } });
+    } catch (error) {
+        console.error("Error validating QR:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 app.post('/api/attendance/mark', async (req, res) => {
     try {
         const { date, className, startTime, endTime, teacherId, students } = req.body;

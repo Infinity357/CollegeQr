@@ -389,6 +389,7 @@
 
         let html5QrcodeScanner = null;
         let scannedIds = new Set(); // To prevent multiple alerts for the same scan
+        let processingScans = new Set(); // Prevent duplicate requests to server
 
         function openScanner() {
             const date = document.getElementById('att-date').value;
@@ -413,14 +414,29 @@
             html5QrcodeScanner.render(onScanSuccess, onScanFailure);
         }
 
-        function onScanSuccess(decodedText, decodedResult) {
+        async function onScanSuccess(decodedText, decodedResult) {
+            if (processingScans.has(decodedText)) return;
+            processingScans.add(decodedText);
+
             try {
-                const qrData = JSON.parse(decodedText);
-                const now = Date.now();
-                
-                // Check if QR is valid (generated within the last 1 minute / 60000ms)
-                if (now - qrData.timestamp <= 60000) {
-                    const id = qrData.rollNo;
+                // Optimistic local check for duplicate student
+                try {
+                    const parsed = JSON.parse(decodedText);
+                    if (parsed.rollNo && scannedIds.has(parsed.rollNo)) {
+                        return;
+                    }
+                } catch(e) {}
+
+                const response = await fetch('/api/qr/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ qrData: decodedText })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const id = data.student.rollNo;
                     if(!scannedIds.has(id)) {
                         scannedIds.add(id);
                         // Mark present in DOM immediately
@@ -432,7 +448,7 @@
                                 studentFound = true;
                                 const presentBtn = row.querySelector('.present');
                                 toggleStatus(presentBtn, 'present');
-                                alert(`Scanned successfully: ${qrData.name} (${id})`);
+                                alert(`Scanned successfully: ${data.student.name} (${id})`);
                             }
                         });
                         
@@ -441,9 +457,10 @@
                         }
                     }
                 } else {
-                    alert("Invalid QR Code: This QR code has expired. Please ask the student to refresh their QR code.");
+                    alert(data.error || "Invalid QR Code.");
                 }
-            } catch (e) {
+            } catch (error) {
+                console.error("Error validating QR:", error);
                 // Fallback for old static QR codes for testing if necessary
                 const studentIds = ["231030083", "231030146", "231030197", "231030202"];
                 for (const id of studentIds) {
@@ -463,6 +480,8 @@
                         break;
                     }
                 }
+            } finally {
+                setTimeout(() => processingScans.delete(decodedText), 2000);
             }
         }
 
